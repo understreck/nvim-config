@@ -15,7 +15,9 @@
             "args": [
                 "--lsp"
             ],
-            "trace.server": "verbose",
+            "rootPatterns": [
+                "hdl_checker.config"
+            ],
             "filetypes": [
                 "vhdl",
                 "verilog",
