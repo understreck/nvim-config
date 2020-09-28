@@ -85,7 +85,9 @@ set cursorline
 set number relativenumber
 
 set signcolumn=yes
-set colorcolumn=80          "visual cue to not go further than 80 columns
+set colorcolumn=80 "visual cue to not go further than 80 columns
+let g:minimumWidth=80
+
 
 set splitbelow splitright   "opens splits below/right, instead of above/left
 set hidden                  "allow switching between buffer without write
@@ -121,8 +123,26 @@ autocmd BufReadPost *
 nnoremap <leader>k :ls u+<CR>:ls<CR>:b<Space>
 
 "Navigate windows
-"nnoremap <leader><left> 
+function! LoopAndChange()
+    call 
+endfunction
 
+function! ChangeWidth(newWidth)
+    function! CycleWindows()
+        let nrWindows = winnr('$')
+        let i = 0
+        while i < nrWindows
+            call RotateForward()
+            let &colorcolumn = g:minimumWidth
+            let i = i + 1
+        endwhile
+    endfunction
+
+    let g:minimumWidth = a:newWidth
+    tabdo call CycleWindows()
+endfunction
+
+"nnoremap <leader><left> 
 nnoremap <Tab> :bnext<CR>:redraw<CR>:ls u+<CR>:ls<CR>
 nnoremap <S-Tab> :bprevious<CR>:redraw<CR>:ls u+<CR>:ls<CR>
 
@@ -154,7 +174,7 @@ function! ResizeWindow()
   call winrestview(l:windRestoreData)
   norm zz<CR>
 
-  exe ":vertical resize +" . (80 - l:actualWidth)
+  exe ":vertical resize +" . (g:minimumWidth - l:actualWidth)
 endfunction
 
 function! EnterWindow()

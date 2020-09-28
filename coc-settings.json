@@ -2,7 +2,9 @@
   "languageserver": {
     "cmake": {
       "command": "cmake-language-server",
-      "filetypes": ["cmake"],
+      "filetypes": [
+        "cmake"
+      ],
       "rootPatterns": [
         "build/"
       ],
@@ -11,37 +13,36 @@
       }
     },
     "hdlChecker": {
-            "command": "hdl_checker",
-            "args": [
-                "--lsp"
-            ],
-            "rootPatterns": [
-                "hdl_checker.config"
-            ],
-            "filetypes": [
-                "vhdl",
-                "verilog",
-                "systemverilog"
-            ]
-        }
-//  "html-languageserver": {
-//          "module": "/usr/lib/node_modules/vscode-html-languageserver-bin/htmlServerMain.js",
-//          "args": [
-//              "--node-ipc"
-//          ],
-//          "filetypes": [
-//              "html"
-//          ],
-//          "css": false,
-//          "javascript": false,
-//          "trace.server": "verbose",
-//          "initializationOptions": {
-//              "css": false,
-//              "javascript": false
-//          }
-//      }
+      "command": "hdl_checker",
+      "args": [
+        "--lsp"
+      ],
+      "rootPatterns": [
+        "hdl_checker.config"
+      ],
+      "filetypes": [
+        "vhdl",
+        "verilog",
+        "systemverilog"
+      ]
+    },
+    "groovy": {
+      "command": "java",
+      "args": [
+        "-jar",
+        "/usr/share/java/groovy-language-server/groovy-language-server-all.jar"
+      ],
+      "filetypes": [
+        "groovy"
+      ]
+    }
   },
-  "coc.preferences.formatOnSaveFiletypes": ["cpp", "glsl"],
+  "coc.preferences.formatOnSaveFiletypes": [
+    "cpp",
+    "glsl",
+    "java",
+    "json"
+  ],
   "python.jediEnabled": false,
-  "clangd.semanticHighlighting" : true
+  "clangd.semanticHighlighting": true
 }
