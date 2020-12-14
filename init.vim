@@ -122,11 +122,6 @@ autocmd BufReadPost *
 "navigate buffers
 nnoremap <leader>k :ls u+<CR>:ls<CR>:b<Space>
 
-"Navigate windows
-function! LoopAndChange()
-    call 
-endfunction
-
 function! ChangeWidth(newWidth)
     function! CycleWindows()
         let nrWindows = winnr('$')
@@ -195,6 +190,7 @@ endfunction
 function! LeaveWindow()
   if BufferEmpty() && UnnamedBuffer()
     bdelete
+    echo "Yeeted empty buffer"
   elseif w:rotateFlag == 0
     wincmd K
   endif
