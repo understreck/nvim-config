@@ -120,7 +120,7 @@ autocmd BufReadPost *
     \ endif
 
 "navigate buffers
-nnoremap <leader>k :ls u+<CR>:ls<CR>:b<Space>
+nnoremap <leader>k :ls!<CR>:b<Space>
 
 function! ChangeWidth(newWidth)
     function! CycleWindows()
@@ -138,8 +138,8 @@ function! ChangeWidth(newWidth)
 endfunction
 
 "nnoremap <leader><left> 
-nnoremap <Tab> :bnext<CR>:redraw<CR>:ls u+<CR>:ls<CR>
-nnoremap <S-Tab> :bprevious<CR>:redraw<CR>:ls u+<CR>:ls<CR>
+nnoremap <silent> <Tab> :bnext!<CR>
+nnoremap <silent> <S-Tab> :bprevious!<CR>
 
 "insert newline before/after current line
 nnoremap <leader>O m`O<ESC>``

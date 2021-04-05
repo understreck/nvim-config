@@ -1,17 +1,17 @@
 {
   "languageserver": {
-    "cmake": {
-      "command": "cmake-language-server",
-      "filetypes": [
-        "cmake"
-      ],
-      "rootPatterns": [
-        "build/"
-      ],
-      "initializationOptions": {
-        "buildDirectory": "build"
-      }
-    },
+    //"cmake": {
+    // "command": "cmake-language-server",
+    // "filetypes": [
+    //  "cmake"
+    //],
+    // "rootPatterns": [
+    //   "build*/"
+    // ],
+    //"initializationOptions": {
+    // "buildDirectory": "build*"
+    //}
+    //},
     "hdlChecker": {
       "command": "hdl_checker",
       "args": [
