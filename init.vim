@@ -100,12 +100,6 @@ filetype on
 
 filetype plugin indent on   "choose autoindent depending on filetype
 
-augroup UserFTs
-    autocmd!
-    autocmd BufRead,BufNewFile *.fallingSand set ft=fallingSand
-    "autocmd BufRead,BufNewFile *.test set ft=test
-augroup END
-
 set updatetime=100 "milliseconds between updates
 
 set laststatus=2

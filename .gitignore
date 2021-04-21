@@ -3,7 +3,6 @@
 
 #Whitelist
 !init.vim
-!coc-settings.json
 !.gitignore
 !ftplugin/
 !ftdetect/
