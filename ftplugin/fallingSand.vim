@@ -49,7 +49,11 @@ function! Clear()
 endfunction
 
 let b:sandChar = '#'
-let b:sandgrains = []
+let b:MovingSandgrains = []
+let b:StillSandgrains = []
+
+let b:cursorPos = [0, 0]
+let b:cursorChar = '*'
 
 function! CanMoveDown(sandgrain)
   let lineIndex = a:sandgrain[1] + 3
@@ -79,6 +83,8 @@ function! CanMoveDownRight(sandgrain)
 endfunction
 
 function! MoveDown(sandgrain)
+  let moving = 1
+
   if CanMoveDown(a:sandgrain)
     let a:sandgrain[1] += 1
   elseif CanMoveDownLeft(a:sandgrain)
@@ -87,7 +93,11 @@ function! MoveDown(sandgrain)
   elseif CanMoveDownRight(a:sandgrain)
     let a:sandgrain[1] += 1
     let a:sandgrain[0] += 1
+  else
+    let moving = 0
   endif
+
+  return moving
 endfunction
 
 function! RenderSandgrain(sandgrain)
@@ -96,39 +106,66 @@ function! RenderSandgrain(sandgrain)
   call setline(a:sandgrain[1] + 2, line)
 endfunction
 
-function! RenderSandgrains(timer)
-  call Clear()
+function! CanMoveAgain(sandgrain)
+  let lineIndex = a:sandgrain[1] + 3
+  let columnIndex = a:sandgrain[0] + 2
 
-  let b:sandgrains = sort(b:sandgrains, {lhs, rhs -> lhs[1] < rhs[1]})
+  let downLeft  = nr2char(strgetchar(getline(lineIndex), columnIndex - 2))
+  let downRight = nr2char(strgetchar(getline(lineIndex), columnIndex))
 
-  for sandgrain in b:sandgrains
-    call MoveDown(sandgrain)
+  return downLeft == ' ' || downRight == ' '
+endfunction
+
+function! MoveAndRenderSandgrains()
+  let b:MovingSandgrains = sort(b:MovingSandgrains, {lhs, rhs -> lhs[1] < rhs[1]})
+  
+  let index = 0
+  while index < len(b:StillSandgrains)
+    if CanMoveAgain(b:StillSandgrains[index])
+      let b:MovingSandgrains += [b:StillSandgrains[index]]
+      call remove(b:StillSandgrains, index)
+      continue
+    else 
+      call RenderSandgrain(b:StillSandgrains[index])
+    endif
+
+    let index += 1
+  endwhile
+
+  let index = 0
+  while index < len(b:MovingSandgrains)
+    if MoveDown(b:MovingSandgrains[index]) == 0
+      call RenderSandgrain(b:MovingSandgrains[index])
+
+      let b:StillSandgrains += [b:MovingSandgrains[index]]
+      call remove(b:MovingSandgrains, index)
+      continue
+    else
+      call RenderSandgrain(b:MovingSandgrains[index])
+    endif
+
+    let index += 1
+  endwhile
+endfunction
+
+function! RenderSandgrains()
+  let b:MovingSandgrains = sort(b:MovingSandgrains, {lhs, rhs -> lhs[1] < rhs[1]})
+  
+  for sandgrain in b:StillSandgrains
+    call RenderSandgrain(sandgrain)
+  endfor
+
+  for sandgrain in b:MovingSandgrains
     call RenderSandgrain(sandgrain)
   endfor
 endfunction
 
-augroup FallingSand
-  autocmd!
-  autocmd BufLeave *.fallingSand call timer_stopall() | let b:paused = 1
-augroup END
-
-call RenderSandgrains(0)
-let b:paused = 1
-
-function! PauseResume()
-  if b:paused == 1
-    let b:paused = 0
-    call timer_start(20, 'RenderSandgrains', {'repeat' : -1})
-  else
-    let b:paused = 1
-    call timer_stopall()
-  endif
-endfunction
-
 function! NotWithinBounds(pos)
-  if a:pos[1] <= 1 || a:pos[1] > b:boardHeight + 1
+  echo a:pos
+
+  if a:pos[1] < 0 || a:pos[1] > b:boardHeight
     return 1
-  elseif a:pos[0] <= 1 || a:pos[0] > b:boardWidth + 1
+  elseif a:pos[0] < 1 || a:pos[0] > b:boardWidth
     return 1
   endif
 
@@ -136,20 +173,86 @@ function! NotWithinBounds(pos)
 endfunction
 
 function! AddSand()
-  if b:paused == 0
-    return
-  endif
-
-  let cursorPos = getcurpos()
-
-  if NotWithinBounds([cursorPos[2], cursorPos[1]]) == 1
-    return
-  endif
-
-  let b:sandgrains = b:sandgrains + [[cursorPos[2] - 2, cursorPos[1] - 2]]
-  call RenderSandgrain(b:sandgrains[len(b:sandgrains) - 1])
+  let b:MovingSandgrains = b:MovingSandgrains + [deepcopy(b:cursorPos)]
+  call RenderSandgrain(b:MovingSandgrains[len(b:MovingSandgrains) - 1])
 endfunction
 
-nnoremap <buffer><C-r> :call timer_stopall()<CR>:e!<CR>
-nnoremap <buffer><space> :call PauseResume()<CR>
-nnoremap <buffer>i :call AddSand()<CR>
+function! RenderCursor()
+  let line = getline(b:cursorPos[1] + 2)
+  let line = strcharpart(line, 0, b:cursorPos[0] + 1) . b:cursorChar . strcharpart(line, b:cursorPos[0] + 2)
+  call setline(b:cursorPos[1] + 2, line)
+endfunction
+
+function! GameTick(timer)
+  call Clear()
+
+  if b:paused == 0
+    call MoveAndRenderSandgrains()
+  else
+    call RenderSandgrains()
+  endif
+
+  call RenderCursor()
+endfunction
+
+let b:paused = 1
+function! PauseResume()
+  if b:paused == 1
+    let b:paused = 0
+    call timer_stopall()
+    call timer_start(100, 'GameTick', {'repeat' : -1})
+  else
+    let b:paused = 1
+    call timer_stopall()
+    call timer_start(100, 'GameTick', {'repeat' : -1})
+  endif
+endfunction
+
+function! CursorDown()
+  if NotWithinBounds([b:cursorPos[0], b:cursorPos[1] + 1])
+    return
+  endif
+
+  let b:cursorPos[1] += 1
+endfunction
+
+function! CursorUp()
+  if NotWithinBounds([b:cursorPos[0], b:cursorPos[1] - 1])
+    return
+  endif
+
+  let b:cursorPos[1] -= 1
+endfunction
+
+function! CursorLeft()
+  if NotWithinBounds([b:cursorPos[0] - 1, b:cursorPos[1]])
+    return
+  endif
+
+  let b:cursorPos[0] -= 1
+endfunction
+
+function! CursorRight()
+  if NotWithinBounds([b:cursorPos[0] + 1, b:cursorPos[1]])
+    return
+  endif
+
+  let b:cursorPos[0] += 1
+endfunction
+
+call Clear()
+
+augroup FallingSand
+  autocmd!
+  autocmd BufLeave *.fallingSand call timer_stopall() | let b:paused = 1
+  autocmd BufEnter *.fallingSand let b:paused = 0     | call PauseResume()
+augroup END
+
+nnoremap <silent><buffer><C-r>    :call timer_stopall()<CR>:e!<CR>
+nnoremap <silent><buffer><space>  :call PauseResume()<CR>
+nnoremap <silent><buffer>i        :call AddSand()<CR>
+
+nnoremap <silent><buffer>j        :call CursorDown()<CR>
+nnoremap <silent><buffer>k        :call CursorUp()<CR>
+nnoremap <silent><buffer>h        :call CursorLeft()<CR>
+nnoremap <silent><buffer>l        :call CursorRight()<CR>
