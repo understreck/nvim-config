@@ -193,12 +193,18 @@ function! LeaveWindow()
   endif
 endfunction
 
+function! ValidWindow()
+  let winConfig = nvim_win_get_config(0)
+
+  return !exists('b:isList') && empty(winConfig['relative'])
+endfunction
+
 augroup manageWindows
   autocmd!
   autocmd FileType list let b:isList=1
   autocmd WinEnter,BufEnter * let w:rotateFlag=0
-  autocmd WinEnter,BufEnter * if !exists('b:isList') | call EnterWindow()
-  autocmd WinLeave,BufLeave * if !exists('b:isList') | call LeaveWindow()
+  autocmd WinEnter,BufEnter * if ValidWindow() | call EnterWindow()
+  autocmd WinLeave,BufLeave * if ValidWindow() | call LeaveWindow()
 augroup END
 
 function! RotateForward()
