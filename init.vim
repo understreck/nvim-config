@@ -271,7 +271,10 @@ endfunction
 "lsp-config
 "------------------------------------------------------------------------------
 lua << EOF
-local nvim_lsp = require('lspconfig')
+local lspconfig = require('lspconfig')
+local configs = require('lspconfig/configs')
+local util = require('lspconfig/util')
+
 local on_attach = function(client, bufnr)
   local function buf_set_keymap(...) vim.api.nvim_buf_set_keymap(bufnr, ...) end
   local function buf_set_option(...) vim.api.nvim_buf_set_option(bufnr, ...) end
@@ -303,18 +306,14 @@ local on_attach = function(client, bufnr)
   end
 
   -- Set autocommands conditional on server_capabilities
+for _,client in ipairs(vim.lsp.get_active_clients()) do
   if client.resolved_capabilities.document_highlight then
-    vim.api.nvim_exec([[
-      hi LspReferenceRead cterm=bold ctermbg=red guibg=Black
-      hi LspReferenceText cterm=bold ctermbg=red guibg=Black
-      hi LspReferenceWrite cterm=bold ctermbg=red guibg=Black
-      augroup lsp_document_highlight
-        autocmd! * <buffer>
-        autocmd CursorHold <buffer> lua vim.lsp.buf.document_highlight()
-        autocmd CursorMoved <buffer> lua vim.lsp.buf.clear_references()
-      augroup END
-    ]], false)
+    vim.cmd [[autocmd CursorHold  <buffer> lua vim.lsp.buf.document_highlight()]]
+    vim.cmd [[autocmd CursorHoldI <buffer> lua vim.lsp.buf.document_highlight()]]
+    vim.cmd [[autocmd CursorMoved <buffer> lua vim.lsp.buf.clear_references()]]
+    break -- only add the autocmds once
   end
+end
 
   local capabilities = vim.lsp.protocol.make_client_capabilities()
   capabilities.textDocument.completion.completionItem.snippetSupport = true
@@ -362,12 +361,24 @@ local on_attach = function(client, bufnr)
 end
   -- Use a loop to conveniently both setup defined servers 
   -- and map buffer local keybindings when the language server attaches
-local servers = { "vimls", "cmake", "clangd" }
+  if not lspconfig.hdl_checker then
+  configs.hdl_checker = {
+    default_config = {
+    cmd = {"hdl_checker", "--lsp", };
+    filetypes = {"vhdl", "verilog", "systemverilog"};
+      root_dir = function(fname)
+        return lspconfig.util.root_pattern('hdl_checker.config')(fname) or lspconfig.util.path.dirname(fname)
+      end;
+      settings = {};
+    };
+  }
+end
+
+local servers = { "vimls", "cmake", "clangd", "hdl_checker" }
 for _, lsp in ipairs(servers) do
-  nvim_lsp[lsp].setup { on_attach = on_attach }
+  lspconfig[lsp].setup { on_attach = on_attach }
 end
 EOF
-
 "------------------------------------------------------------------------------
 "compe
 "------------------------------------------------------------------------------
