@@ -1,5 +1,6 @@
 call plug#begin(stdpath('data') . '/plugged')
 Plug 'neovim/nvim-lspconfig'
+Plug 'p00f/clangd_extensions.nvim'
 Plug 'hrsh7th/nvim-compe'
 Plug 'hrsh7th/vim-vsnip'
 Plug 'hrsh7th/vim-vsnip-integ'
@@ -384,10 +385,12 @@ configs.java_language_server = {
   };
 };
 
+require("clangd_extensions").setup()
+
 -- Use a loop to conveniently both setup defined servers 
 -- and map buffer local keybindings when the language server attaches
 local servers =
-    { "vimls", "cmake", "clangd", "java_language_server" }
+    { "vimls", "cmake", "java_language_server", "jedi_language_server"}
 for _, lsp in ipairs(servers) do
   lspconfig[lsp].setup { on_attach = on_attach }
 end
