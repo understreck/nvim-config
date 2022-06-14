@@ -296,7 +296,7 @@ local on_attach = function(client, bufnr)
   buf_set_keymap('n', 'g[', '<cmd>lua vim.lsp.diagnostic.goto_next()<CR>', opts)
   buf_set_keymap('n', '<space>e', '<cmd>lua vim.lsp.diagnostic.show_line_diagnostics()<CR>', opts)
   buf_set_keymap('n', '<space>q', '<cmd>lua vim.lsp.diagnostic.set_loclist()<CR>', opts)
-  buf_set_keymap('n', 'ca', '<cmd>lua vim.lsp.buf.code_action()<CR>', opts)
+  buf_set_keymap('n', 'qq', '<cmd>lua vim.lsp.buf.code_action()<CR>', opts)
 
   -- Set some keybinds conditional on server capabilities
   if client.resolved_capabilities.document_formatting then
@@ -359,26 +359,40 @@ end
   vim.api.nvim_set_keymap("i", "<Tab>", "v:lua.tab_complete()", {expr = true})
   vim.api.nvim_set_keymap("i", "<S-Tab>", "v:lua.s_tab_complete()", {expr = true})
 end
-  -- Use a loop to conveniently both setup defined servers 
-  -- and map buffer local keybindings when the language server attaches
-  if not lspconfig.hdl_checker then
-  configs.hdl_checker = {
-    default_config = {
-    cmd = {"hdl_checker", "--lsp", };
-    filetypes = {"vhdl", "verilog", "systemverilog"};
-      root_dir = function(fname)
-        return lspconfig.util.root_pattern('hdl_checker.config')(fname) or lspconfig.util.path.dirname(fname)
-      end;
-      settings = {};
-    };
-  }
-end
 
-local servers = { "vimls", "cmake", "clangd", "hdl_checker" }
+--if not lspconfig.hdl_checker then
+-- configs.hdl_checker = {
+--   default_config = {
+--      cmd = {"hdl_checker", "--lsp", };
+--      filetypes = {"vhdl", "verilog", "systemverilog"};
+--      root_dir = function(fname)
+--          return
+--              lspconfig.util.root_pattern('hdl_checker.config')(fname) or
+--              lspconfig.util.path.dirname(fname)
+--      end;
+--      settings = {};
+--   };
+-- }
+--end
+
+configs.java_language_server = {
+  default_config = {
+    cmd = {"java-language-server"};
+    filetypes = {"java"};
+    root_dir = lspconfig.util.root_pattern("build.gradle", "pom.xml", ".git");
+    settings = {};
+  };
+};
+
+-- Use a loop to conveniently both setup defined servers 
+-- and map buffer local keybindings when the language server attaches
+local servers =
+    { "vimls", "cmake", "clangd", "java_language_server" }
 for _, lsp in ipairs(servers) do
   lspconfig[lsp].setup { on_attach = on_attach }
 end
 EOF
+
 "------------------------------------------------------------------------------
 "compe
 "------------------------------------------------------------------------------
@@ -418,7 +432,7 @@ let g:compe.source.vsnip = v:true
 
 lua <<EOF
 require'nvim-treesitter.configs'.setup {
-  ensure_installed = "maintained", -- one of "all", "maintained" (parsers with maintainers), or a list of languages
+  ensure_installed = "all", -- one of "all", "maintained" (parsers with maintainers), or a list of languages
   highlight = {
     enable = true,              -- false will disable the whole extension
   },
